@@ -222,9 +222,9 @@ class _DashboardState extends State<Dashboard> {
                   // Container(
                   //   child:
                   for (
-                  DateTime tempDate = _startDate;
-                  _endDate.difference(tempDate).inDays > 0;
-                  tempDate = tempDate.add(Duration(days: 7))
+                    DateTime tempDate = _startDate;
+                    _endDate.difference(tempDate).inDays > 0;
+                    tempDate = tempDate.add(Duration(days: 7))
                   )
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -239,38 +239,38 @@ class _DashboardState extends State<Dashboard> {
                             },
                             child: Container(
                               height: 64,
-                              width: 52,
+                              width: screenWidth / 7 - 6,
                               decoration: BoxDecoration(
                                 color:
-                                isSameDate(
-                                  tempDate.add(Duration(days: i)),
-                                  _selectedDate,
-                                )
+                                    isSameDate(
+                                      tempDate.add(Duration(days: i)),
+                                      _selectedDate,
+                                    )
                                     ? Colors.blue.shade700
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border:
-                                isSameDate(
-                                  tempDate.add(Duration(days: i)),
-                                  _selectedDate,
-                                )
+                                    isSameDate(
+                                      tempDate.add(Duration(days: i)),
+                                      _selectedDate,
+                                    )
                                     ? null
                                     : BoxBorder.all(
-                                  color:
-                                  isSameDate(
-                                    tempDate.add(Duration(days: i)),
-                                    DateTime.now(),
-                                  )
-                                      ? Colors.blue.shade700
-                                      : Color(0xFFBBBBBB),
-                                  width:
-                                  isSameDate(
-                                    tempDate.add(Duration(days: i)),
-                                    DateTime.now(),
-                                  )
-                                      ? 2
-                                      : 1,
-                                ),
+                                        color:
+                                            isSameDate(
+                                              tempDate.add(Duration(days: i)),
+                                              DateTime.now(),
+                                            )
+                                            ? Colors.blue.shade700
+                                            : Color(0xFFBBBBBB),
+                                        width:
+                                            isSameDate(
+                                              tempDate.add(Duration(days: i)),
+                                              DateTime.now(),
+                                            )
+                                            ? 2
+                                            : 1,
+                                      ),
                               ),
                               // padding: EdgeInsets.only(top: 4),
                               child: Center(
@@ -283,10 +283,10 @@ class _DashboardState extends State<Dashboard> {
                                       _dayList[i][0],
                                       style: AppTextStyle.primaryText.copyWith(
                                         color:
-                                        isSameDate(
-                                          tempDate.add(Duration(days: i)),
-                                          _selectedDate,
-                                        )
+                                            isSameDate(
+                                              tempDate.add(Duration(days: i)),
+                                              _selectedDate,
+                                            )
                                             ? Color(0xFFCCCCCC)
                                             : Color(0xFF999999),
                                       ),
@@ -295,10 +295,10 @@ class _DashboardState extends State<Dashboard> {
                                       '${tempDate.add(Duration(days: i)).day}',
                                       style: AppTextStyle.heading5.copyWith(
                                         color:
-                                        isSameDate(
-                                          tempDate.add(Duration(days: i)),
-                                          _selectedDate,
-                                        )
+                                            isSameDate(
+                                              tempDate.add(Duration(days: i)),
+                                              _selectedDate,
+                                            )
                                             ? Colors.white
                                             : Color(0xFF3C3C3C),
                                         fontWeight: FontWeight.w800,
@@ -370,10 +370,10 @@ class _DashboardState extends State<Dashboard> {
                             TweenAnimationBuilder<double>(
                               tween: Tween<double>(
                                 begin:
-                                _consumedIntake['energy']! /
+                                    _consumedIntake['energy']! /
                                     _requiredIntake['energy']!,
                                 end:
-                                _consumedIntermediateIntake['energy']! /
+                                    _consumedIntermediateIntake['energy']! /
                                     _requiredIntake['energy']!,
                               ),
                               duration: Duration(milliseconds: 500),
@@ -381,7 +381,7 @@ class _DashboardState extends State<Dashboard> {
                               onEnd: () {
                                 setState(() {
                                   _consumedIntake['energy'] =
-                                  _consumedIntermediateIntake['energy']!;
+                                      _consumedIntermediateIntake['energy']!;
                                 });
                               },
                               builder: (context, value, child) {
@@ -420,8 +420,8 @@ class _DashboardState extends State<Dashboard> {
                                       begin: _consumedIntake['energy']!
                                           .toDouble(),
                                       end:
-                                      _consumedIntermediateIntake['energy']!
-                                          .toDouble(),
+                                          _consumedIntermediateIntake['energy']!
+                                              .toDouble(),
                                     ),
                                     duration: Duration(milliseconds: 500),
                                     curve: Curves.easeOutCubic,
@@ -467,7 +467,7 @@ class _DashboardState extends State<Dashboard> {
                   // Nutrients
                   Column(
                     spacing:
-                    1.5 *
+                        1.5 *
                         ((screenWidth - 40) * 0.2 - (screenWidth - 40) * 0.185),
                     children: [
                       for (int i = 0; i < 3; i++)
@@ -513,9 +513,9 @@ class _DashboardState extends State<Dashboard> {
                                               value.toStringAsFixed(0),
                                               style: AppTextStyle.heading5
                                                   .copyWith(
-                                                color: Color(0xFF3C3C3C),
-                                                fontWeight: FontWeight.w800,
-                                              ),
+                                                    color: Color(0xFF3C3C3C),
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
                                             );
                                           },
                                         ),
@@ -530,9 +530,9 @@ class _DashboardState extends State<Dashboard> {
                                     ),
                                     Text(
                                       _requiredIntake.entries
-                                          .elementAt(i)
-                                          .key[0]
-                                          .toUpperCase() +
+                                              .elementAt(i)
+                                              .key[0]
+                                              .toUpperCase() +
                                           _requiredIntake.entries
                                               .elementAt(i)
                                               .key
@@ -549,16 +549,16 @@ class _DashboardState extends State<Dashboard> {
                                     TweenAnimationBuilder<double>(
                                       tween: Tween<double>(
                                         begin:
-                                        _consumedIntake.entries
-                                            .elementAt(i)
-                                            .value /
+                                            _consumedIntake.entries
+                                                .elementAt(i)
+                                                .value /
                                             _requiredIntake.entries
                                                 .elementAt(i)
                                                 .value,
                                         end:
-                                        _consumedIntermediateIntake.entries
-                                            .elementAt(i)
-                                            .value /
+                                            _consumedIntermediateIntake.entries
+                                                .elementAt(i)
+                                                .value /
                                             _requiredIntake.entries
                                                 .elementAt(i)
                                                 .value,
@@ -571,7 +571,7 @@ class _DashboardState extends State<Dashboard> {
                                             .elementAt(i)
                                             .key;
                                         _consumedIntake[key] =
-                                        _consumedIntermediateIntake[key]!;
+                                            _consumedIntermediateIntake[key]!;
                                         // });
                                       },
                                       builder: (context, value, child) {
@@ -582,15 +582,15 @@ class _DashboardState extends State<Dashboard> {
                                           ),
                                           backgroundColor: Color(0xFFDDDDDD),
                                           color:
-                                          (_requiredIntake.entries
-                                              .elementAt(i)
-                                              .key ==
-                                              'carbs')
+                                              (_requiredIntake.entries
+                                                      .elementAt(i)
+                                                      .key ==
+                                                  'carbs')
                                               ? Color(0xFF4AD851)
                                               : (_requiredIntake.entries
-                                              .elementAt(i)
-                                              .key ==
-                                              'protein')
+                                                        .elementAt(i)
+                                                        .key ==
+                                                    'protein')
                                               ? Colors.orangeAccent
                                               : Colors.amberAccent,
                                           value: value,
@@ -605,18 +605,18 @@ class _DashboardState extends State<Dashboard> {
                                       },
                                     ),
                                     if (_requiredIntake.entries
-                                        .elementAt(i)
-                                        .key ==
+                                            .elementAt(i)
+                                            .key ==
                                         'carbs')
                                       Text('🍞'),
                                     if (_requiredIntake.entries
-                                        .elementAt(i)
-                                        .key ==
+                                            .elementAt(i)
+                                            .key ==
                                         'protein')
                                       Text('🥚'),
                                     if (_requiredIntake.entries
-                                        .elementAt(i)
-                                        .key ==
+                                            .elementAt(i)
+                                            .key ==
                                         'fat')
                                       Text('🧀'),
                                   ],
@@ -841,7 +841,8 @@ class _DashboardState extends State<Dashboard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => IntakeSelect(intakeRoundIndex: i,),
+                            builder: (context) =>
+                                IntakeSelect(intakeRoundIndex: i),
                           ),
                         );
                       },
@@ -997,7 +998,7 @@ class _DashboardState extends State<Dashboard> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     // child: Positioned.fill(child: WaterWave()),
-                    child: Expanded(child: WaterWave(),),
+                    child: Expanded(child: WaterWave()),
                   ),
                   // RotatingIcon(),
                   Container(

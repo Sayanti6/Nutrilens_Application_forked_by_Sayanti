@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: Container(
         margin: EdgeInsetsGeometry.symmetric(horizontal: 22),
         child: NavigationBar(
-          height: 54,
+          height: 80, // for pixel 9 pro it was 54
           destinations: [
             NavigationDestination(
               icon: Icon(Icons.home_outlined, size: 28),
