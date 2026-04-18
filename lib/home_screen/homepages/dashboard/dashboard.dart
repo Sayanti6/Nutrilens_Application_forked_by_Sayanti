@@ -3,13 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:nutrilens_test/cores/constants/colors.dart';
 import 'package:nutrilens_test/cores/constants/text_styles.dart';
-// import 'package:nutrilens_test/home_screen/homepages/dashboard/ai_custom_recipe.dart'
-//     hide IntakeRound;
-// import 'package:nutrilens_test/home_screen/homepages/dashboard/intake_select.dart' hide IntakeRound;
+import 'package:nutrilens_test/custom_widget_library/wavy_animated_progress.dart';
+import 'package:nutrilens_test/home_screen/homepages/dashboard/ai_custom_recipe.dart';
+import 'package:nutrilens_test/home_screen/homepages/dashboard/intake_select.dart';
 
 import '../../../cores/custom_datatypes/custom_classes.dart';
-import 'ai_custom_recipe.dart';
-import 'intake_select.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -77,6 +75,10 @@ class _DashboardState extends State<Dashboard> {
   final WorkoutRound _workoutRound = WorkoutRound();
   int _energyBurned = 0;
   int _energyBurnedIntermediate = 0;
+
+  int _requiredWater = 2250;
+  int _drinkedWater = 0;
+  int _waterCupSize = 250;
 
   @override
   void initState() {
@@ -220,9 +222,9 @@ class _DashboardState extends State<Dashboard> {
                   // Container(
                   //   child:
                   for (
-                    DateTime tempDate = _startDate;
-                    _endDate.difference(tempDate).inDays > 0;
-                    tempDate = tempDate.add(Duration(days: 7))
+                  DateTime tempDate = _startDate;
+                  _endDate.difference(tempDate).inDays > 0;
+                  tempDate = tempDate.add(Duration(days: 7))
                   )
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -240,35 +242,35 @@ class _DashboardState extends State<Dashboard> {
                               width: 52,
                               decoration: BoxDecoration(
                                 color:
-                                    isSameDate(
-                                      tempDate.add(Duration(days: i)),
-                                      _selectedDate,
-                                    )
+                                isSameDate(
+                                  tempDate.add(Duration(days: i)),
+                                  _selectedDate,
+                                )
                                     ? Colors.blue.shade700
                                     : Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border:
-                                    isSameDate(
-                                      tempDate.add(Duration(days: i)),
-                                      _selectedDate,
-                                    )
+                                isSameDate(
+                                  tempDate.add(Duration(days: i)),
+                                  _selectedDate,
+                                )
                                     ? null
                                     : BoxBorder.all(
-                                        color:
-                                            isSameDate(
-                                              tempDate.add(Duration(days: i)),
-                                              DateTime.now(),
-                                            )
-                                            ? Colors.blue.shade700
-                                            : Color(0xFFBBBBBB),
-                                        width:
-                                            isSameDate(
-                                              tempDate.add(Duration(days: i)),
-                                              DateTime.now(),
-                                            )
-                                            ? 2
-                                            : 1,
-                                      ),
+                                  color:
+                                  isSameDate(
+                                    tempDate.add(Duration(days: i)),
+                                    DateTime.now(),
+                                  )
+                                      ? Colors.blue.shade700
+                                      : Color(0xFFBBBBBB),
+                                  width:
+                                  isSameDate(
+                                    tempDate.add(Duration(days: i)),
+                                    DateTime.now(),
+                                  )
+                                      ? 2
+                                      : 1,
+                                ),
                               ),
                               // padding: EdgeInsets.only(top: 4),
                               child: Center(
@@ -281,10 +283,10 @@ class _DashboardState extends State<Dashboard> {
                                       _dayList[i][0],
                                       style: AppTextStyle.primaryText.copyWith(
                                         color:
-                                            isSameDate(
-                                              tempDate.add(Duration(days: i)),
-                                              _selectedDate,
-                                            )
+                                        isSameDate(
+                                          tempDate.add(Duration(days: i)),
+                                          _selectedDate,
+                                        )
                                             ? Color(0xFFCCCCCC)
                                             : Color(0xFF999999),
                                       ),
@@ -293,10 +295,10 @@ class _DashboardState extends State<Dashboard> {
                                       '${tempDate.add(Duration(days: i)).day}',
                                       style: AppTextStyle.heading5.copyWith(
                                         color:
-                                            isSameDate(
-                                              tempDate.add(Duration(days: i)),
-                                              _selectedDate,
-                                            )
+                                        isSameDate(
+                                          tempDate.add(Duration(days: i)),
+                                          _selectedDate,
+                                        )
                                             ? Colors.white
                                             : Color(0xFF3C3C3C),
                                         fontWeight: FontWeight.w800,
@@ -368,10 +370,10 @@ class _DashboardState extends State<Dashboard> {
                             TweenAnimationBuilder<double>(
                               tween: Tween<double>(
                                 begin:
-                                    _consumedIntake['energy']! /
+                                _consumedIntake['energy']! /
                                     _requiredIntake['energy']!,
                                 end:
-                                    _consumedIntermediateIntake['energy']! /
+                                _consumedIntermediateIntake['energy']! /
                                     _requiredIntake['energy']!,
                               ),
                               duration: Duration(milliseconds: 500),
@@ -379,7 +381,7 @@ class _DashboardState extends State<Dashboard> {
                               onEnd: () {
                                 setState(() {
                                   _consumedIntake['energy'] =
-                                      _consumedIntermediateIntake['energy']!;
+                                  _consumedIntermediateIntake['energy']!;
                                 });
                               },
                               builder: (context, value, child) {
@@ -418,8 +420,8 @@ class _DashboardState extends State<Dashboard> {
                                       begin: _consumedIntake['energy']!
                                           .toDouble(),
                                       end:
-                                          _consumedIntermediateIntake['energy']!
-                                              .toDouble(),
+                                      _consumedIntermediateIntake['energy']!
+                                          .toDouble(),
                                     ),
                                     duration: Duration(milliseconds: 500),
                                     curve: Curves.easeOutCubic,
@@ -465,7 +467,7 @@ class _DashboardState extends State<Dashboard> {
                   // Nutrients
                   Column(
                     spacing:
-                        1.5 *
+                    1.5 *
                         ((screenWidth - 40) * 0.2 - (screenWidth - 40) * 0.185),
                     children: [
                       for (int i = 0; i < 3; i++)
@@ -511,9 +513,9 @@ class _DashboardState extends State<Dashboard> {
                                               value.toStringAsFixed(0),
                                               style: AppTextStyle.heading5
                                                   .copyWith(
-                                                    color: Color(0xFF3C3C3C),
-                                                    fontWeight: FontWeight.w800,
-                                                  ),
+                                                color: Color(0xFF3C3C3C),
+                                                fontWeight: FontWeight.w800,
+                                              ),
                                             );
                                           },
                                         ),
@@ -528,9 +530,9 @@ class _DashboardState extends State<Dashboard> {
                                     ),
                                     Text(
                                       _requiredIntake.entries
-                                              .elementAt(i)
-                                              .key[0]
-                                              .toUpperCase() +
+                                          .elementAt(i)
+                                          .key[0]
+                                          .toUpperCase() +
                                           _requiredIntake.entries
                                               .elementAt(i)
                                               .key
@@ -547,16 +549,16 @@ class _DashboardState extends State<Dashboard> {
                                     TweenAnimationBuilder<double>(
                                       tween: Tween<double>(
                                         begin:
-                                            _consumedIntake.entries
-                                                .elementAt(i)
-                                                .value /
+                                        _consumedIntake.entries
+                                            .elementAt(i)
+                                            .value /
                                             _requiredIntake.entries
                                                 .elementAt(i)
                                                 .value,
                                         end:
-                                            _consumedIntermediateIntake.entries
-                                                .elementAt(i)
-                                                .value /
+                                        _consumedIntermediateIntake.entries
+                                            .elementAt(i)
+                                            .value /
                                             _requiredIntake.entries
                                                 .elementAt(i)
                                                 .value,
@@ -569,7 +571,7 @@ class _DashboardState extends State<Dashboard> {
                                             .elementAt(i)
                                             .key;
                                         _consumedIntake[key] =
-                                            _consumedIntermediateIntake[key]!;
+                                        _consumedIntermediateIntake[key]!;
                                         // });
                                       },
                                       builder: (context, value, child) {
@@ -580,15 +582,15 @@ class _DashboardState extends State<Dashboard> {
                                           ),
                                           backgroundColor: Color(0xFFDDDDDD),
                                           color:
-                                              (_requiredIntake.entries
-                                                      .elementAt(i)
-                                                      .key ==
-                                                  'carbs')
+                                          (_requiredIntake.entries
+                                              .elementAt(i)
+                                              .key ==
+                                              'carbs')
                                               ? Color(0xFF4AD851)
                                               : (_requiredIntake.entries
-                                                        .elementAt(i)
-                                                        .key ==
-                                                    'protein')
+                                              .elementAt(i)
+                                              .key ==
+                                              'protein')
                                               ? Colors.orangeAccent
                                               : Colors.amberAccent,
                                           value: value,
@@ -603,18 +605,18 @@ class _DashboardState extends State<Dashboard> {
                                       },
                                     ),
                                     if (_requiredIntake.entries
-                                            .elementAt(i)
-                                            .key ==
+                                        .elementAt(i)
+                                        .key ==
                                         'carbs')
                                       Text('🍞'),
                                     if (_requiredIntake.entries
-                                            .elementAt(i)
-                                            .key ==
+                                        .elementAt(i)
+                                        .key ==
                                         'protein')
                                       Text('🥚'),
                                     if (_requiredIntake.entries
-                                            .elementAt(i)
-                                            .key ==
+                                        .elementAt(i)
+                                        .key ==
                                         'fat')
                                       Text('🧀'),
                                   ],
@@ -940,6 +942,135 @@ class _DashboardState extends State<Dashboard> {
                       style: AppTextStyle.heading6.copyWith(
                         color: Colors.white,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: 14),
+            // Water section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: screenWidth - 244,
+              children: [
+                Text('Water', style: AppTextStyle.heading3),
+                SizedBox(
+                  width: 120,
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      // spacing: 8,
+                      children: [
+                        Text(
+                          'More',
+                          style: AppTextStyle.heading6.copyWith(
+                            color: Color(0xFF888888),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, color: Color(0xFF888888)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 14),
+            // water section
+            Container(
+              // height: 70,
+              width: screenWidth,
+              margin: EdgeInsetsGeometry.symmetric(horizontal: 16, vertical: 4),
+              // padding: EdgeInsetsGeometry.symmetric(
+              //   // horizontal: 16,
+              //   vertical: 16,
+              // ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: BoxBorder.all(color: Color(0xFFE1E9FF), width: 1),
+              ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    // child: Positioned.fill(child: WaterWave()),
+                    child: Expanded(child: WaterWave(),),
+                  ),
+                  // RotatingIcon(),
+                  Container(
+                    padding: EdgeInsetsGeometry.symmetric(
+                      // horizontal: 16,
+                      vertical: 16,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: screenWidth - 250,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              spacing: 2,
+                              children: [
+                                Text(
+                                  _drinkedWater.toString(),
+                                  style: AppTextStyle.heading1.copyWith(
+                                    color: Color(0xFF050F2C),
+                                  ),
+                                ),
+                                Text(
+                                  'ml',
+                                  style: AppTextStyle.heading6.copyWith(
+                                    color: Color(0xFF050F2C),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Goal ${_requiredWater}ml',
+                              style: AppTextStyle.primaryBoldText.copyWith(
+                                color: Color(0xFF888888),
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              padding: EdgeInsetsGeometry.symmetric(
+                                horizontal: 6,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Color(0xFFEDEDED),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '1 cup = ${_waterCupSize}ml',
+                                style: AppTextStyle.extraSmallText.copyWith(
+                                  color: Color(0xFF555555),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          height: 80,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                'assets/glass_of_water_image.png',
+                              ),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.add_rounded,
+                            size: 28,
+                            color: Color(0xFF2A3145),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
