@@ -841,7 +841,7 @@ class _DashboardState extends State<Dashboard> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => IntakeSelect(),
+                            builder: (context) => IntakeSelect(intakeRoundIndex: i,),
                           ),
                         );
                       },
