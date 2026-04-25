@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     
     # YOLO Model Configuration
     MODEL_PATH: str = "backend/weights/best_indian_food.pt"
-    CONFIDENCE_THRESHOLD: float = 0.4
+    CONFIDENCE_THRESHOLD: float = 0.25
     
     # Grok/Groq API Configuration
     XAI_API_KEY: str = ""
