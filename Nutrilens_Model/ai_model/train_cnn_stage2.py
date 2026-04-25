@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms, models
 from torch.utils.data import DataLoader
+import json
 
 def train_secondary_cnn(data_dir, num_epochs=10, batch_size=32, learning_rate=0.001):
     """
@@ -50,8 +51,12 @@ def train_secondary_cnn(data_dir, num_epochs=10, batch_size=32, learning_rate=0.
     print(f"Found {num_classes} classes: {class_names}")
     print(f"Dataset sizes -> Train: {dataset_sizes['train']}, Valid: {dataset_sizes['valid']}")
 
+    # Save classes to JSON for the pipeline
+    with open('cnn_class_names.json', 'w') as f:
+        json.dump(class_names, f)
+
     # 4. Model Setup
-    model = models.resnet18(pretrained=True)
+    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
     num_ftrs = model.fc.in_features
     # Replace final layer with the exact number of our classes
     model.fc = nn.Linear(num_ftrs, num_classes)

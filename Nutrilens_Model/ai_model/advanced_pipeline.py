@@ -2,6 +2,8 @@ import cv2
 import torch
 import numpy as np
 import os
+import json
+from pathlib import Path
 from ultralytics import YOLO
 import torchvision.transforms as transforms
 import torchvision.models as models
@@ -17,13 +19,23 @@ class NutrilensAdvancedPipeline:
         self.detector = YOLO(yolo_weights_path)
         
         print("[INFO] Loading Stage 2: Secondary CNN Classifier/Regressor...")
-        self.num_classes = 12
-        self.cnn_class_names = [
-            'bread_or_Roti_naan', 'curry_dish', 'drink', 'dry_vegetable', 'fish_dish', 'fruits',
-            'pasta', 'rice_dish', 'snack_item', 'soup', 'south_indian_breakfast', 'sweet_item'
-        ]
         
-        self.secondary_model = models.resnet18(pretrained=True)
+        # Load classes dynamically from the JSON created during training
+        json_path = Path(r"d:\Projects\Nutrilens_front\Nutrilens_Application\Nutrilens_Model\cnn_class_names.json")
+        if json_path.exists():
+            with open(json_path, 'r') as f:
+                self.cnn_class_names = json.load(f)
+            self.num_classes = len(self.cnn_class_names)
+            print(f"[INFO] Loaded {self.num_classes} dynamic classes from cnn_class_names.json")
+        else:
+            print("[WARNING] cnn_class_names.json not found, falling back to default 12 classes")
+            self.num_classes = 12
+            self.cnn_class_names = [
+                'bread_or_Roti_naan', 'curry_dish', 'drink', 'dry_vegetable', 'fish_dish', 'fruits',
+                'pasta', 'rice_dish', 'snack_item', 'soup', 'south_indian_breakfast', 'sweet_item'
+            ]
+        
+        self.secondary_model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
         # Modify the final layer to match the 12 classes we trained on
         self.secondary_model.fc = torch.nn.Linear(self.secondary_model.fc.in_features, self.num_classes)
         
@@ -81,19 +93,26 @@ class NutrilensAdvancedPipeline:
         estimated_calories = base_factor * (normalized_area ** 1.2) * 5000 
         return max(10, round(estimated_calories)) # Minimum 10 calories
 
-    def process_image(self, image_path):
+    def process_image(self, image_input):
         """
         Runs the full two-stage pipeline on an image.
         """
-        img = cv2.imread(image_path)
-        if img is None:
-            print(f"[ERROR] Could not load image: {image_path}")
+        if isinstance(image_input, str) or isinstance(image_input, Path):
+            img = cv2.imread(str(image_input))
+            if img is None:
+                print(f"[ERROR] Could not load image: {image_input}")
+                return None
+        elif isinstance(image_input, np.ndarray):
+            img = image_input
+        else:
+            print(f"[ERROR] Unsupported image type: {type(image_input)}")
             return None
             
         img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         
         # --- STAGE 1: YOLO Detection ---
-        results = self.detector(img_rgb)[0]
+        # Set a lower confidence threshold to catch more potential food items
+        results = self.detector(img_rgb, conf=0.15)[0]
         
         detections = []
         

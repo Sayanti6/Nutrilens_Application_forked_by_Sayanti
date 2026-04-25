@@ -4,6 +4,15 @@ from ultralytics import YOLO
 from PIL import Image
 import io
 from backend.core.config import settings
+import sys
+from pathlib import Path
+
+# Add ai_model path to sys path to import advanced pipeline
+ai_model_path = str(Path(__file__).resolve().parent.parent.parent / 'ai_model')
+if ai_model_path not in sys.path:
+    sys.path.append(ai_model_path)
+
+from advanced_pipeline import NutrilensAdvancedPipeline
 
 class YOLOService:
     _instance = None
@@ -12,14 +21,17 @@ class YOLOService:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(YOLOService, cls).__new__(cls)
-            # Initialize the model only once
+            # Initialize the advanced pipeline model only once
             try:
-                cls._model = YOLO(settings.MODEL_PATH)
-                print(f"Model loaded successfully from {settings.MODEL_PATH}")
+                # Use fine-tuned yolo weights and cnn weights
+                yolo_weights = r"d:\Projects\Nutrilens_front\Nutrilens_Application\Nutrilens_Model\runs\detect\Nutrilens\IndianFoodV2_Optimized\weights\best.pt"
+                cnn_weights = r"d:\Projects\Nutrilens_front\Nutrilens_Application\Nutrilens_Model\best_cnn_stage2.pth"
+                cls._model = NutrilensAdvancedPipeline(yolo_weights_path=yolo_weights, cnn_weights_path=cnn_weights)
+                print(f"Nutrilens Advanced Pipeline loaded successfully")
             except Exception as e:
-                print(f"FAILED to load model from {settings.MODEL_PATH}: {e}")
-                # Fallback to local model if path is wrong
-                cls._model = YOLO("yolov8s.pt") 
+                print(f"FAILED to load advanced pipeline: {e}")
+                # Fallback
+                cls._model = NutrilensAdvancedPipeline(yolo_weights_path="yolo11m.pt") 
         return cls._instance
 
     @property
@@ -28,43 +40,40 @@ class YOLOService:
 
     def predict(self, image_input):
         """
-        Runs YOLO inference on the input image.
+        Runs Nutrilens Advanced Pipeline inference on the input image.
         image_input: bytes or PIL.Image.Image or numpy array
         """
-        # Convert bytes to PIL if necessary
+        # Convert bytes to cv2 numpy array
         if isinstance(image_input, bytes):
             image_input = Image.open(io.BytesIO(image_input))
+            
+        if isinstance(image_input, Image.Image):
+            # Convert PIL Image to BGR numpy array for OpenCV
+            image_input = cv2.cvtColor(np.array(image_input), cv2.COLOR_RGB2BGR)
         
-        # Run inference
-        results = self.model.predict(
-            source=image_input, 
-            conf=settings.CONFIDENCE_THRESHOLD,
-            save=False
-        )
-
-        detections = []
-        for result in results:
-            boxes = result.boxes
-            for box in boxes:
-                # Get bounding box coordinates
-                x1, y1, x2, y2 = box.xyxy[0].tolist()
-                
-                # Get class label and confidence
-                cls_id = int(box.cls[0])
-                label = self.model.names[cls_id]
-                confidence = float(box.conf[0])
-                
-                detections.append({
-                    "class": label,
-                    "confidence": round(confidence, 3),
-                    "bbox": {
-                        "x_min": round(x1, 2),
-                        "y_min": round(y1, 2),
-                        "x_max": round(x2, 2),
-                        "y_max": round(y2, 2)
-                    }
-                })
+        # Run advanced inference
+        result = self.model.process_image(image_input)
         
-        return detections
+        if result is None:
+            return []
+            
+        out_img, pipeline_detections = result
+        
+        formatted_detections = []
+        for det in pipeline_detections:
+            formatted_detections.append({
+                "class": det["fine_grained_class"], # Expose the 92-class CNN prediction!
+                "yolo_base_class": det["yolo_class"],
+                "confidence": round(det["confidence"], 3),
+                "calories": det["estimated_calories"], # Expose the dynamic calories!
+                "bbox": {
+                    "x_min": det["bbox"][0],
+                    "y_min": det["bbox"][1],
+                    "x_max": det["bbox"][2],
+                    "y_max": det["bbox"][3]
+                }
+            })
+        
+        return formatted_detections
 
 yolo_service = YOLOService()
