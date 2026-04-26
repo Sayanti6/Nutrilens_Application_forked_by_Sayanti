@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   google_fonts: ^8.0.2
+  pie_chart: ^5.4.0
   flutter:
     sdk: flutter
 
