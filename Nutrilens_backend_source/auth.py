@@ -1,39 +1,78 @@
 from datetime import datetime, timedelta, timezone
-import os
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError, ExpiredSignatureError
-from schemas import TokenData
-import models
-from database.db import get_db
+
+import jwt
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt.exceptions import InvalidTokenError
+from motor.motor_asyncio import AsyncIOMotorCollection
+from pwdlib import PasswordHash
+from pydantic import BaseModel
+
+from bson import ObjectId
+
+from Nutrilens_backend_source.security import Hash
+from Nutrilens_backend_source.schemas import TokenData, User, UserInDB
+from Nutrilens_backend_source.database.db import users_collection
+
+import os
 
 from dotenv import load_dotenv
 load_dotenv()
 
+
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-ALGORITHM = "HS256"
+ALGORITHM = os.getenv("ALGORITHM")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
+# def get_user(db, username: str):
+#     if username in db:
+#         user_dict = db[username]
+#         return UserInDB(**user_dict)
 
-def get_user(username: str, db: Session):
-    user = db.query(models.User).filter(models.User.username == username).first()
+async def get_user_from_db_by_id(users_collection: AsyncIOMotorCollection, user_id: str) -> UserInDB:
+
+    user_dict = await users_collection.find_one(
+        {"_id": ObjectId(user_id)}
+    )
+
+    if user_dict:
+        # # MongoDB ObjectId remove
+        # user_dict.pop("_id", None)
+        user_dict["_id"] = str(user_dict["_id"])
+        return UserInDB(**user_dict)
+        # return User(**user_dict) # not returning the hashed_password
+
+    return None
+
+async def get_user_from_db(users_collection: AsyncIOMotorCollection, username: str) -> UserInDB:
+
+    user_dict = await users_collection.find_one(
+        {"username": username}
+    )
+
+    if user_dict:
+        # # MongoDB ObjectId remove
+        # user_dict.pop("_id", None)
+        user_dict["_id"] = str(user_dict["_id"])
+        return UserInDB(**user_dict) # **user_dict is converting user_dict from python dict to pydantic model
+        # return User(**user_dict) # not returning the hashed_password
+
+    return None
+
+async def authenticate_user(username: str, password: str) -> UserInDB:
+    user = await get_user_from_db(users_collection=users_collection, username=username)
     if not user:
-        user = db.query(models.Admin).filter(models.Admin.username == username).first()
-        if not user:
-            # raise HTTPException(
-            #     status_code=status.HTTP_404_NOT_FOUND,
-            #     detail=f"username {username} not found"
-            # )
-            return None
-        return user
+        # verify_password(password, DUMMY_HASH)
+        return False
+    if not Hash.verify_password(password, user.hashed_password):
+        return False
     return user
-    
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
-    to_encode = data.copy()
+def create_access_token(user_id: str, expires_delta: timedelta | None = None):
+    to_encode = {"sub": user_id}
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
@@ -42,8 +81,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(get_db)):
-async def get_current_user(token: str, db: Session):
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> UserInDB:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -51,26 +90,21 @@ async def get_current_user(token: str, db: Session):
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
+        user_id = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
-    except ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Session expired"
-        )
-    except JWTError:
+        token_data = TokenData(user_id=user_id)
+    except InvalidTokenError:
         raise credentials_exception
-    user = get_user(token_data.username, db)
+    user = await get_user_from_db_by_id(users_collection=users_collection, user_id=token_data.user_id)
     if user is None:
         raise credentials_exception
     return user
 
 
-# async def get_current_active_user(
-#     current_user: Annotated[User, Depends(get_current_user)],
-# ):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
+async def get_current_active_user(
+    current_user: Annotated[UserInDB, Depends(get_current_user)],
+) -> UserInDB:
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user

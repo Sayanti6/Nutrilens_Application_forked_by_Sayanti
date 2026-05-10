@@ -1,15 +1,9 @@
-from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status, Response
-from auth import create_access_token
-from schemas import RegisterForm
-from database import get_db
-from security import Hash
-import models
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
+from datetime import timedelta
+from fastapi import APIRouter, HTTPException, status
+from Nutrilens_backend_source.security import Hash
+from Nutrilens_backend_source.schemas import RegisterUserForm, UserModelDB, Token
+from Nutrilens_backend_source.auth import authenticate_user, create_access_token
+from Nutrilens_backend_source.database.db import users_collection
 
 router = APIRouter()
 
@@ -19,41 +13,51 @@ VALIDATION_TIME = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 ACCESS_TOKEN_EXPIRE_WEEKS = 1
 VALIDATION_TIME = timedelta(weeks=ACCESS_TOKEN_EXPIRE_WEEKS)
 
-@router.post("/register/")
-async def register(response: Response, request: RegisterForm, db: Session = Depends(get_db)):
-    admin = db.query(models.Admin).filter(models.Admin.username == request.username).first()
-    user = db.query(models.User).filter(models.User.username == request.username).first()
-    if admin:
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"Admin with username {admin.username} already registered"
-        )
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"User with username {user.username} already registered"
-        )
-    if request.password != request.confirmPassword:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password mismatch"
-        )
-    new_user = models.User(
-        name=request.name,
-        username=request.username,
-        password=Hash.hash_password(request.password),
-        role=request.role,
-        contact = request.contact
-    )
-    # db.add(new_user)
-    # db.commit()
-    # db.refresh(new_user)
 
-    access_token_expires = VALIDATION_TIME
-    access_token = create_access_token(
-        data={"sub": request.username}, expires_delta=access_token_expires
+@router.post("/register")
+async def register(form_data: RegisterUserForm) -> Token:
+
+    # Check existing username
+    existing_user = await users_collection.find_one(
+        {"username": form_data.username}
     )
-    # 
-    return {"status":"ok","message": "Registration successful!"}
-    # return Token(access_token=access_token, token_type="bearer")
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Username already exists"
+        )
+
+    # Hash password
+    hashed_password = Hash.get_password_hash(
+        form_data.password
+    )
+
+    # Create new user
+    new_user = UserModelDB(
+        username=form_data.username,
+        email=form_data.email,
+        full_name=form_data.full_name,
+        hashed_password=hashed_password,
+        disabled=False
+    )
+ 
+    # Store in MongoDB
+    await users_collection.insert_one(
+        new_user.model_dump() # model_dump() converts pydantic model (UserModelDB) to python dict
+    )
+
+    # Auto-login token
+    user_db = await authenticate_user(form_data.username, form_data.password)
+    if not user_db:
+        raise HTTPException(
+            status_code=status.HTTP_424_FAILED_DEPENDENCY,
+            detail="Registration failed",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
+    access_token = create_access_token(
+        user_id=user_db.id, expires_delta=VALIDATION_TIME
+    )
+
+    return Token(access_token=access_token, token_type="bearer")

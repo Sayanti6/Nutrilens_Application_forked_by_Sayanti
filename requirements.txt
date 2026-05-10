@@ -1,6 +1,9 @@
 fastapi[standard]
 pydantic
 motor
+certifi
 passlib[bcrypt]
 python-jose
+pyjwt
+pwdlib[argon2]
 python-dotenv
